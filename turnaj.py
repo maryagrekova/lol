@@ -19,7 +19,7 @@ class Rytir:
         if self._puvod == "king":
             return self._puvod
         if self._puvod == "pawn":
-            return "I won, lets not care about my parents."
+            return "Lets not care about my parents..."
 
     @puvod.setter
     def puvod(self, value):

@@ -1,0 +1,143 @@
+import tensorflow as tf
+from tensorflow.keras.preprocessing.image import ImageDataGenerator
+from tensorflow.keras.applications.inception_v3 import InceptionV3
+from tensorflow.keras import layers, models
+from tensorflow.keras.optimizers import Adam
+
+# Set your dataset path
+import os
+
+from google.colab import files
+import os
+from zipfile import ZipFile
+import shutil
+
+uploaded = files.upload()
+
+
+# Unzip the uploaded file
+for file_name in uploaded.keys():
+    with ZipFile(file_name, 'r') as zip_ref:
+        zip_ref.extractall('dataset')
+
+# Get the path to the extracted dataset
+dataset_path = 'dataset'
+
+# Print the contents of the dataset folder
+print(os.listdir(dataset_path))
+
+
+# Data augmentation for training images
+train_datagen = ImageDataGenerator(
+    rescale=1./255,
+    shear_range=0.2,
+    zoom_range=0.2,
+    horizontal_flip=True,
+    validation_split=0.2
+)
+
+# Load and split the dataset
+train_generator = train_datagen.flow_from_directory(
+    dataset_path,
+    target_size=(299, 299),
+    batch_size=32,
+    class_mode='binary',
+    subset='training'
+)
+
+validation_generator = train_datagen.flow_from_directory(
+    dataset_path,
+    target_size=(299, 299),
+    batch_size=32,
+    class_mode='binary',
+    subset='validation'
+)
+
+# Load pre-trained InceptionV3 model
+base_model = InceptionV3(weights='imagenet', include_top=False, input_shape=(299, 299, 3))
+
+# Freeze the pre-trained layers
+for layer in base_model.layers:
+    layer.trainable = False
+
+# Add custom classification layers
+model = models.Sequential()
+model.add(base_model)
+model.add(layers.GlobalAveragePooling2D())
+model.add(layers.Dense(128, activation='relu'))
+model.add(layers.Dropout(0.5))
+model.add(layers.Dense(1, activation='sigmoid'))
+
+# Compile the model
+model.compile(optimizer=Adam(lr=0.0001), loss='binary_crossentropy', metrics=['accuracy'])
+
+# Train the model
+history = model.fit(
+    train_generator,
+    epochs=10,
+    validation_data=validation_generator
+)
+
+# Save the trained model
+model.save('pizza_classifier_model.h5')
+
+
+import tensorflow as tf
+from tensorflow.keras.preprocessing.image import ImageDataGenerator
+from tensorflow.keras.applications.inception_v3 import InceptionV3
+from tensorflow.keras import layers, models
+from tensorflow.keras.optimizers import Adam
+
+# Data augmentation for training images
+train_datagen = ImageDataGenerator(
+    rescale=1./255,
+    shear_range=0.2,
+    zoom_range=0.2,
+    horizontal_flip=True,
+    validation_split=0.2
+)
+
+# Load and split the dataset
+train_generator = train_datagen.flow_from_directory(
+    dataset_path,
+    target_size=(299, 299),
+    batch_size=32,
+    class_mode='binary',
+    subset='training'
+)
+
+validation_generator = train_datagen.flow_from_directory(
+    dataset_path,
+    target_size=(299, 299),
+    batch_size=32,
+    class_mode='binary',
+    subset='validation'
+)
+
+# Load pre-trained InceptionV3 model
+base_model = InceptionV3(weights='imagenet', include_top=False, input_shape=(299, 299, 3))
+
+# Freeze the pre-trained layers
+for layer in base_model.layers:
+    layer.trainable = False
+
+# Add custom classification layers
+model = models.Sequential()
+model.add(base_model)
+model.add(layers.GlobalAveragePooling2D())
+model.add(layers.Dense(128, activation='relu'))
+model.add(layers.Dropout(0.5))
+model.add(layers.Dense(1, activation='sigmoid'))
+
+# Compile the model
+model.compile(optimizer=Adam(lr=0.0001), loss='binary_crossentropy', metrics=['accuracy'])
+
+# Train the model
+history = model.fit(
+    train_generator,
+    epochs=10,
+    validation_data=validation_generator
+)
+
+# Save the trained model
+model.save('pizza_classifier_model.h5')
